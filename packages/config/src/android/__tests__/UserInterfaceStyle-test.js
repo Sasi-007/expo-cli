@@ -5,7 +5,7 @@ import {
   setUiModeAndroidManifest,
 } from '../UserInterfaceStyle';
 
-// TODO: use fixtures for manifest/build.gradle instead of inline strings
+// TODO: use fixtures for manifest/mainactivity instead of inline strings
 
 const EXAMPLE_ANDROID_MANIFEST = `
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
