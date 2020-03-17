@@ -34,6 +34,6 @@ export function setPackageInAndroidManifest(
     return androidManifest;
   }
 
-  let pattern = new RegExp(`android:name="${packageNameToReplace}"`);
-  return androidManifest.replace(pattern, `android:name="${packageName}"`);
+  let pattern = new RegExp(`package="${packageNameToReplace}"`);
+  return androidManifest.replace(pattern, `package="${packageName}"`);
 }

@@ -3,9 +3,29 @@ import { getPackage, setPackageInAndroidManifest, setPackageInBuildGradle } from
 // TODO: use fixtures for manifest/build.gradle instead of inline strings
 
 const EXAMPLE_ANDROID_MANIFEST = `
-<application
-  android:name="com.helloworld"
-/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.helloworld">
+    <application
+    android:name=".MainApplication"
+    android:label="@string/app_name"
+    android:icon="@mipmap/ic_launcher"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:allowBackup="false"
+    android:theme="@style/AppTheme">
+    <activity
+      android:name=".MainActivity"
+      android:label="@string/app_name"
+      android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+      android:windowSoftInputMode="adjustResize">
+      <intent-filter>
+          <action android:name="android.intent.action.MAIN" />
+          <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
+  </application>
+
+</manifest>
 `;
 
 const EXAMPLE_BUILD_GRADLE = `
@@ -41,7 +61,7 @@ describe('package', () => {
   it(`sets the android:name in AndroidManifest.xml if package is given`, () => {
     expect(
       setPackageInAndroidManifest({ android: { package: 'my.new.app' } }, EXAMPLE_ANDROID_MANIFEST)
-    ).toMatch('android:name="my.new.app"');
+    ).toMatch('package="my.new.app"');
   });
 
   // TODO: add test cases for passing in a different package name to replace in third param
