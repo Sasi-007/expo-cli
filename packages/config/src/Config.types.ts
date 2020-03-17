@@ -148,6 +148,12 @@ export type AndroidPlatformConfig = {
    */
   googleServicesFile?: string;
 
+  /**
+   * Configuration to force the app to always use the light or dark user-interface appearance, such as \"dark mode\", or make it automatically adapt to the system preferences. If not provided, defaults to `light`.
+   * @fallback light
+   */
+  userInterfaceStyle?: 'light' | 'dark' | 'automatic';
+
   config?: {
     /**
      * [Branch](https://branch.io/) key to hook up Branch linking services.
