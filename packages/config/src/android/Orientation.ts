@@ -31,7 +31,9 @@ export async function setAndroidOrientation(config: ExpoConfig, projectDirectory
   try {
     await writeAndroidManifestAsync(manifestPath, androidManifestJson);
   } catch (e) {
-    throw new Error(`Cannot write new AndroidManifest.xml to ${manifestPath}.`);
+    throw new Error(
+      `Error setting Android orientation. Cannot write new AndroidManifest.xml to ${manifestPath}.`
+    );
   }
   return true;
 }
