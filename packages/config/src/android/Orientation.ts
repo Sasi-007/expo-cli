@@ -23,10 +23,10 @@ export async function setAndroidOrientation(config: ExpoConfig, projectDirectory
   }
 
   let androidManifestJson = await readAndroidManifestAsync(manifestPath);
-
-  androidManifestJson.manifest.application[0].activity[0]['$'][
-    SCREEN_ORIENTATION_ATTRIBUTE
-  ] = orientation;
+  let mainActivity = androidManifestJson.manifest.application[0].activity.filter(
+    (e: any) => e['$']['android:name'] === '.MainActivity'
+  );
+  mainActivity[0]['$'][SCREEN_ORIENTATION_ATTRIBUTE] = orientation;
 
   try {
     await writeAndroidManifestAsync(manifestPath, androidManifestJson);
