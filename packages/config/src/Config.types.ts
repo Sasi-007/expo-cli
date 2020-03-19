@@ -256,7 +256,7 @@ export type AndroidPlatformConfig = {
         ]
       }]
      */
-  intentFilters?: IntentFilter | IntentFilter[];
+  intentFilters?: IntentFilter[];
 };
 
 // tslint:disable-next-line:max-line-length

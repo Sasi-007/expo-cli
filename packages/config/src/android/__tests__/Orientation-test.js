@@ -13,11 +13,11 @@ describe('Android orientation', () => {
 
     await fs.ensureDir(dirname(appManifestPath));
     await fs.copyFile(sampleManifestPath, appManifestPath);
-  }, 1000);
+  }, 10000);
 
   afterAll(async () => {
     await fs.remove(resolve(fixturesPath, 'tmp/'));
-  }, 1000);
+  }, 10000);
 
   it(`returns null if no orientation is provided`, () => {
     expect(getOrientation({})).toBe(null);
