@@ -1,33 +1,15 @@
+import fs from 'fs-extra';
+import { dirname, resolve } from 'path';
 import {
   ON_CONFIGURATION_CHANGED,
   addOnConfigurationChangedMainActivity,
   getUserInterfaceStyle,
   setUiModeAndroidManifest,
 } from '../UserInterfaceStyle';
+import { readAndroidManifestAsync } from '../Manifest';
 
-// TODO: use fixtures for manifest/mainactivity instead of inline strings
-
-const EXAMPLE_ANDROID_MANIFEST = `
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.helloworld">
-    <application
-    android:name=".MainApplication"
-    android:theme="@style/AppTheme">
-    
-    <activity
-        android:name=".MainActivity"
-        android:label="@string/app_name"
-        android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-        android:windowSoftInputMode="adjustResize">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-      </activity>
-    <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
-  </application>
-</manifest>
-`;
+const fixturesPath = resolve(__dirname, 'fixtures');
+const sampleManifestPath = resolve(fixturesPath, 'react-native-AndroidManifest.xml');
 
 const EXAMPLE_MAIN_ACTIVITY_BEFORE = `
 package com.helloworld;
@@ -78,12 +60,6 @@ describe('User interface style', () => {
     ).toBe('light');
   });
 
-  it(`sets the android:configChanges in AndroidManifest.xml if userInterfaceStyle is given`, () => {
-    expect(
-      setUiModeAndroidManifest({ userInterfaceStyle: 'light' }, EXAMPLE_ANDROID_MANIFEST)
-    ).toMatch(`android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"`);
-  });
-
   it(`adds the onConfigurationChanged method in MainActivity.java if userInterfaceStyle is given`, () => {
     expect(
       addOnConfigurationChangedMainActivity(
@@ -93,12 +69,31 @@ describe('User interface style', () => {
     ).toMatch(ON_CONFIGURATION_CHANGED);
   });
 
-  it(`makes no changes to the androidManifest or MainActivity if userInterfaceStyle value provided`, () => {
-    expect(setUiModeAndroidManifest({}, EXAMPLE_ANDROID_MANIFEST)).toMatch(
-      EXAMPLE_ANDROID_MANIFEST
-    );
-    expect(addOnConfigurationChangedMainActivity({}, EXAMPLE_MAIN_ACTIVITY_BEFORE)).toMatch(
-      EXAMPLE_MAIN_ACTIVITY_BEFORE
-    );
+  describe('write file correctly', () => {
+    const projectDirectory = resolve(fixturesPath, 'tmp/');
+    const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
+
+    beforeAll(async () => {
+      await fs.ensureDir(dirname(appManifestPath));
+      await fs.copyFile(sampleManifestPath, appManifestPath);
+    });
+
+    afterAll(async () => {
+      await fs.remove(resolve(fixturesPath, 'tmp/'));
+    });
+
+    it(`sets the android:configChanges in AndroidManifest.xml if userInterfaceStyle is given`, async () => {
+      expect(
+        await setUiModeAndroidManifest({ userInterfaceStyle: 'light' }, projectDirectory)
+      ).toBe(true);
+      //read file
+    });
+
+    it(`makes no changes to the androidManifest or MainActivity if userInterfaceStyle value provided`, async () => {
+      expect(await setUiModeAndroidManifest({}, projectDirectory)).toBe(false);
+      expect(addOnConfigurationChangedMainActivity({}, EXAMPLE_MAIN_ACTIVITY_BEFORE)).toMatch(
+        EXAMPLE_MAIN_ACTIVITY_BEFORE
+      );
+    });
   });
 });

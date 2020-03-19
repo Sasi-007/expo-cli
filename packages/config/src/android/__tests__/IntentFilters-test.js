@@ -1,21 +1,23 @@
-import fs, { ensureDir } from 'fs-extra';
+import fs from 'fs-extra';
 import { dirname, resolve } from 'path';
 import { readAndroidManifestAsync } from '../Manifest';
 import { getIntentFilters, setAndroidIntentFilters } from '../IntentFilters';
 
 const fixturesPath = resolve(__dirname, 'fixtures');
-const projectDirectory = resolve(fixturesPath, 'tmp/');
 const sampleManifestPath = resolve(fixturesPath, 'react-native-AndroidManifest.xml');
-const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
+
 describe('Android intent filters', () => {
+  const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
+  const projectDirectory = resolve(fixturesPath, 'tmp/');
+
   beforeAll(async () => {
     await fs.ensureDir(dirname(appManifestPath));
     await fs.copyFile(sampleManifestPath, appManifestPath);
-  }, 10000);
+  });
 
   afterAll(async () => {
-    await fs.remove(resolve(fixturesPath, 'tmp/'));
-  }, 10000);
+    await fs.remove(resolve(fixturesPath, 'android/'));
+  });
 
   it(`returns empty array if no intent filters are provided`, () => {
     expect(getIntentFilters({})).toEqual([]);
@@ -70,5 +72,5 @@ describe('Android intent filters', () => {
         e => e['$']['android:name'] === '.MainActivity'
       )[0]['intent-filter']
     ).toHaveLength(2);
-  }, 10000);
+  });
 });

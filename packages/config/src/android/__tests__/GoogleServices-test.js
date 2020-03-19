@@ -48,7 +48,7 @@ describe('google services file', () => {
     await expect(
       fs.pathExists(resolve(fixturesPath, 'android/app/google-services.json'))
     ).resolves.toBeTruthy();
-  }, 10000);
+  });
 
   it(`copies google services file to custom target path`, async () => {
     const projectRoot = fixturesPath;
@@ -66,5 +66,5 @@ describe('google services file', () => {
     ).toBe(true);
 
     await expect(fs.pathExists(resolve(fixturesPath, customTargetPath))).resolves.toBeTruthy();
-  }, 10000);
+  });
 });
