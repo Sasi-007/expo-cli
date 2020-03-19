@@ -4,7 +4,6 @@ import { getGoogleServicesFilePath, setGoogleServicesFile } from '../GoogleServi
 
 const fixturesPath = resolve(__dirname, 'fixtures');
 
-it;
 describe('google services file', () => {
   beforeEach(async () => {
     await fs.remove(resolve(fixturesPath, 'android/app'));
