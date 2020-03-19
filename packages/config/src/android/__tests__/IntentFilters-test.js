@@ -10,12 +10,12 @@ describe('Android intent filters', () => {
   const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
   const projectDirectory = resolve(fixturesPath, 'tmp/');
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await fs.ensureDir(dirname(appManifestPath));
     await fs.copyFile(sampleManifestPath, appManifestPath);
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await fs.remove(resolve(fixturesPath, 'android/'));
   });
 
@@ -45,7 +45,7 @@ describe('Android intent filters', () => {
     ).toBe(false);
   });
 
-  it(`writes intent filter to android manifest `, async () => {
+  it(`writes intent filter to android manifest`, async () => {
     expect(
       await setAndroidIntentFilters(
         {

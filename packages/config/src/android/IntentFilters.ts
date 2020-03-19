@@ -8,6 +8,8 @@ import {
   writeAndroidManifestAsync,
 } from './Manifest';
 
+// TODO: make it so intent filters aren't written again if you run the command again
+
 export function getIntentFilters(config: ExpoConfig) {
   return config.android?.intentFilters ?? [];
 }
