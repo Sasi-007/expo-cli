@@ -125,6 +125,12 @@ export type AndroidPlatformConfig = {
   versionCode?: number;
 
   /**
+   * The background color for your app, behind any of your React views. This is also known as the root view background color. This value should be a 6 character long hex color string, eg: '#000000'. Default is white — '#ffffff'.
+   * Overrides the top-level `backgroundColor` key if it is present.
+   */
+  backgroundColor?: string;
+
+  /**
    * Local path or remote url to an image to use for your app's icon on Android. If specified, this overrides the top-level `icon` key. We recommend that you use a 1024x1024 png file (transparency is recommended for the Google Play Store). This icon will appear on the home screen and within the Expo app.
    */
   icon?: Icon;
@@ -586,6 +592,13 @@ export type IosPlatformConfig = {
    * @pattern ^[A-Za-z0-9\\.]+$
    */
   buildNumber?: string;
+
+  /**
+   * The background color for your app, behind any of your React views. This is also known as the root view background color. This value should be a 6 character long hex color string, eg: '#000000'. Default is white — '#ffffff'.
+   * Overrides the top-level `backgroundColor` key if it is present.
+   */
+  backgroundColor?: string;
+
   /**
    * Local path or remote URL to an image to use for your app's icon on iOS. If specified, this overrides the top-level `icon` key. Use a 1024x1024 icon which follows Apple's interface guidelines for icons, including color profile and transparency. Expo will generate the other required sizes. This icon will appear on the home screen and within the Expo app.
    */
@@ -722,6 +735,10 @@ export type ExpoConfig = {
    * @pattern ^[a-zA-Z0-9_\\-]+$
    */
   slug?: string;
+  /**
+   * The background color for your app, behind any of your React views. This is also known as the root view background color. This value should be a 6 character long hex color string, eg: '#000000'. Default is white — '#ffffff'.
+   */
+  backgroundColor?: string;
   /**
    * The username of the account under which this app is published. If not specified, the app is published as the currently signed-in user.
    */
