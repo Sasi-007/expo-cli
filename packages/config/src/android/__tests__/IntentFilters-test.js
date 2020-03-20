@@ -10,12 +10,12 @@ describe('Android intent filters', () => {
   const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
   const projectDirectory = resolve(fixturesPath, 'tmp/');
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     await fs.ensureDir(dirname(appManifestPath));
     await fs.copyFile(sampleManifestPath, appManifestPath);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await fs.remove(resolve(fixturesPath, 'android/'));
   });
 
