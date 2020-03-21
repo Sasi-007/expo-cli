@@ -23,12 +23,8 @@ export async function setStatusBarColor(config: ExpoConfig, projectDirectory: st
   let hexString = getStatusBarColor(config);
 
   const stylesPath = await getProjectStylesXMLPathAsync(projectDirectory);
-  if (!stylesPath) {
-    return false;
-  }
-
   const colorsPath = await getProjectColorsXMLPathAsync(projectDirectory);
-  if (!colorsPath) {
+  if (!colorsPath || !stylesPath) {
     return false;
   }
 
@@ -48,7 +44,7 @@ export async function setStatusBarColor(config: ExpoConfig, projectDirectory: st
     colorsJSON = setColorItem(colorItemToAdd, colorsJSON);
 
     styleItemToAdd[0]._ = `@color/${COLOR_PRIMARY_DARK_KEY}`;
-    styleItemToAdd[0].$.name = 'colorPrimaryDark';
+    styleItemToAdd[0].$.name = COLOR_PRIMARY_DARK_KEY;
   }
 
   stylesJSON = setStylesItem(styleItemToAdd, stylesJSON);

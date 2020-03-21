@@ -1,11 +1,20 @@
 import { ExpoConfig } from '../Config.types';
-import { getProjectStylesXMLPathAsync, readStylesXMLAsync, writeStylesXMLAsync } from './Styles';
+import {
+  XMLItem,
+  getProjectStylesXMLPathAsync,
+  readStylesXMLAsync,
+  setStylesItem,
+  writeStylesXMLAsync,
+} from './Styles';
+import {
+  getProjectColorsXMLPathAsync,
+  readColorsXMLAsync,
+  setColorItem,
+  writeColorsXMLAsync,
+} from './Colors';
 
+const COLOR_PRIMARY_KEY = 'colorPrimary';
 const DEFAULT_PRIMARY_COLOR = '#023c69';
-type StyleItem = {
-  _: string;
-  $: { name: string };
-};
 
 export function getPrimaryColor(config: ExpoConfig) {
   return config.primaryColor ?? DEFAULT_PRIMARY_COLOR;
@@ -15,37 +24,28 @@ export async function setPrimaryColor(config: ExpoConfig, projectDirectory: stri
   let hexString = getPrimaryColor(config);
 
   const stylesPath = await getProjectStylesXMLPathAsync(projectDirectory);
-  if (!stylesPath) {
+  const colorsPath = await getProjectColorsXMLPathAsync(projectDirectory);
+  if (!colorsPath || !stylesPath) {
     return false;
   }
 
-  const colorPrimaryItem = [
-    {
-      _: hexString,
-      $: {
-        name: 'colorPrimary',
-      },
-    },
-  ];
-
   let stylesJSON = await readStylesXMLAsync(stylesPath);
-  let appTheme = stylesJSON.resources.style.filter((e: any) => e['$']['name'] === 'AppTheme')[0];
-  if (appTheme.item) {
-    let existingColorPrimaryItem = appTheme.item.filter(
-      (item: StyleItem) => item['$'].name === 'colorPrimary'
-    )[0];
+  let colorsJSON = await readColorsXMLAsync(colorsPath);
 
-    // Don't want to 2 colorPrimaries, so if one exists, we overwrite it
-    if (existingColorPrimaryItem) {
-      existingColorPrimaryItem['_'] = colorPrimaryItem[0]['_'];
-    } else {
-      appTheme.item = appTheme.item.concat(colorPrimaryItem);
-    }
-  } else {
-    appTheme.item = colorPrimaryItem;
-  }
+  let colorItemToAdd: XMLItem[] = [{ _: '', $: { name: '' } }];
+  let styleItemToAdd: XMLItem[] = [{ _: '', $: { name: '' } }];
+
+  colorItemToAdd[0]._ = hexString;
+  colorItemToAdd[0].$.name = COLOR_PRIMARY_KEY;
+
+  styleItemToAdd[0]._ = `@color/${COLOR_PRIMARY_KEY}`;
+  styleItemToAdd[0].$.name = COLOR_PRIMARY_KEY;
+
+  colorsJSON = setColorItem(colorItemToAdd, colorsJSON);
+  stylesJSON = setStylesItem(styleItemToAdd, stylesJSON);
 
   try {
+    await writeColorsXMLAsync(colorsPath, colorsJSON);
     await writeStylesXMLAsync(stylesPath, stylesJSON);
   } catch (e) {
     throw new Error(

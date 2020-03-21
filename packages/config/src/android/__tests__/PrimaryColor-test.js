@@ -1,7 +1,8 @@
 import fs from 'fs-extra';
 import { dirname, resolve } from 'path';
 import { getPrimaryColor, setPrimaryColor } from '../PrimaryColor';
-import { readAndroidManifestAsync as readXMLFileAsync } from '../Manifest';
+import { readStylesXMLAsync } from '../Styles';
+import { getProjectColorsXMLPathAsync, readColorsXMLAsync } from '../Colors';
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleStylesXMLPath = resolve(fixturesPath, 'styles.xml');
 
@@ -14,7 +15,7 @@ describe('Android primary color', () => {
     expect(getPrimaryColor({ primaryColor: '#111111' })).toMatch('#111111');
   });
 
-  describe('write primary color to colors.xml correctly', () => {
+  describe('E2E: write primary color to colors.xml and styles.xml correctly', () => {
     const projectDirectory = resolve(fixturesPath, 'tmp/');
     const stylesXMLPath = resolve(fixturesPath, 'tmp/android/app/src/main/res/values/styles.xml');
 
@@ -30,11 +31,17 @@ describe('Android primary color', () => {
     it(`sets the colorPrimary item in Styles.xml if backgroundColor is given`, async () => {
       expect(await setPrimaryColor({ primaryColor: '#654321' }, projectDirectory)).toBe(true);
 
-      let stylesJSON = await readXMLFileAsync(stylesXMLPath);
+      let stylesJSON = await readStylesXMLAsync(stylesXMLPath);
+      let colorsXMLPath = await getProjectColorsXMLPathAsync(projectDirectory);
+      let colorsJSON = await readColorsXMLAsync(colorsXMLPath);
+
       expect(
         stylesJSON.resources.style
           .filter(e => e['$']['name'] === 'AppTheme')[0]
           .item.filter(item => item['$'].name === 'colorPrimary')[0]['_']
+      ).toMatch('@color/colorPrimary');
+      expect(
+        colorsJSON.resources.color.filter(e => e['$']['name'] === 'colorPrimary')[0]['_']
       ).toMatch('#654321');
     });
   });
