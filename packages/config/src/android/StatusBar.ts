@@ -1,14 +1,19 @@
-import { getProjectStylesXMLPathAsync } from './Styles';
-import { ExpoConfig } from '../Config.types';
 import {
-  readAndroidManifestAsync as readXMLFileAsync,
-  writeAndroidManifestAsync as writeXMLFileAsync,
-} from './Manifest';
+  XMLItem,
+  getProjectStylesXMLPathAsync,
+  readStylesXMLAsync,
+  setStylesItem,
+  writeStylesXMLAsync,
+} from './Styles';
+import {
+  getProjectColorsXMLPathAsync,
+  readColorsXMLAsync,
+  setColorItem,
+  writeColorsXMLAsync,
+} from './Colors';
+import { ExpoConfig } from '../Config.types';
 
-type StyleItem = {
-  _: string;
-  $: { name: string };
-};
+const COLOR_PRIMARY_DARK_KEY = 'colorPrimaryDark';
 
 export function getStatusBarColor(config: ExpoConfig) {
   return config.androidStatusBar?.backgroundColor || 'translucent';
@@ -22,35 +27,35 @@ export async function setStatusBarColor(config: ExpoConfig, projectDirectory: st
     return false;
   }
 
-  let stylesJSON = await readXMLFileAsync(stylesPath);
-  let appTheme = stylesJSON.resources.style.filter((e: any) => e['$']['name'] === 'AppTheme')[0];
-  let existingItem;
-  let itemToAdd: StyleItem[] = [{ _: '', $: { name: '' } }];
+  const colorsPath = await getProjectColorsXMLPathAsync(projectDirectory);
+  if (!colorsPath) {
+    return false;
+  }
+
+  let stylesJSON = await readStylesXMLAsync(stylesPath);
+  let colorsJSON = await readColorsXMLAsync(colorsPath);
+
+  let styleItemToAdd: XMLItem[] = [{ _: '', $: { name: '' } }];
   if (hexString === 'translucent') {
     // translucent status bar set in theme
-    itemToAdd[0]._ = 'true';
-    itemToAdd[0].$.name = 'android:windowTranslucentStatus';
+    styleItemToAdd[0]._ = 'true';
+    styleItemToAdd[0].$.name = 'android:windowTranslucentStatus';
   } else {
-    itemToAdd[0]._ = hexString;
-    itemToAdd[0].$.name = 'colorPrimaryDark';
-  }
-  if (appTheme.item) {
-    existingItem = appTheme.item.filter(
-      (item: StyleItem) => item['$'].name === itemToAdd[0].$.name
-    )[0];
+    // Need to add a color key to colors.xml to use in styles.xml
+    let colorItemToAdd: XMLItem[] = [{ _: '', $: { name: '' } }];
+    colorItemToAdd[0]._ = hexString;
+    colorItemToAdd[0].$.name = COLOR_PRIMARY_DARK_KEY;
+    colorsJSON = setColorItem(colorItemToAdd, colorsJSON);
 
-    // Don't want to 2 colorPrimaryDark items, so if one exists, we overwrite it
-    if (existingItem) {
-      existingItem['_'] = itemToAdd[0]['_'];
-    } else {
-      appTheme.item = appTheme.item.concat(itemToAdd);
-    }
-  } else {
-    appTheme.item = itemToAdd;
+    styleItemToAdd[0]._ = `@color/${COLOR_PRIMARY_DARK_KEY}`;
+    styleItemToAdd[0].$.name = 'colorPrimaryDark';
   }
+
+  stylesJSON = setStylesItem(styleItemToAdd, stylesJSON);
 
   try {
-    await writeXMLFileAsync(stylesPath, stylesJSON);
+    await writeColorsXMLAsync(colorsPath, colorsJSON);
+    await writeStylesXMLAsync(stylesPath, stylesJSON);
   } catch (e) {
     throw new Error(
       `Error setting Android primary dark color. Cannot write new AndroidManifest.xml to ${stylesPath}.`

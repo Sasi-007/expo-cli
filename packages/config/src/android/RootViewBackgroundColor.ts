@@ -1,5 +1,6 @@
 import { ExpoConfig } from '../Config.types';
 import { getProjectStylesXMLPathAsync, readStylesXMLAsync, writeStylesXMLAsync } from './Styles';
+import { getProjectColorsXMLPathAsync, readColorsXMLAsync, writeColorsXMLAsync } from './Colors';
 
 type StyleItem = {
   _: string;

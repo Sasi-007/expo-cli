@@ -1,7 +1,8 @@
 import fs from 'fs-extra';
 import { dirname, resolve } from 'path';
 import { getStatusBarColor, setStatusBarColor } from '../StatusBar';
-import { readAndroidManifestAsync as readXMLFileAsync } from '../Manifest';
+import { readStylesXMLAsync } from '../Styles';
+import { getProjectColorsXMLPathAsync, readColorsXMLAsync } from '../Colors';
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleStylesXMLPath = resolve(fixturesPath, 'styles.xml');
 
@@ -27,10 +28,10 @@ describe('Android primary color', () => {
     });
 
     afterAll(async () => {
-      //await fs.remove(resolve(fixturesPath, 'tmp/'));
+      await fs.remove(resolve(fixturesPath, 'tmp/'));
     });
 
-    it(`sets the colorPrimaryDark item in Styles.xml if 'androidStatusBar.backgroundColor' is given`, async () => {
+    it(`E2E: sets the colorPrimaryDark item in styles.xml and adds color to colors.xml if 'androidStatusBar.backgroundColor' is given`, async () => {
       expect(
         await setStatusBarColor(
           { androidStatusBar: { backgroundColor: '#654321' } },
@@ -38,11 +39,16 @@ describe('Android primary color', () => {
         )
       ).toBe(true);
 
-      let stylesJSON = await readXMLFileAsync(stylesXMLPath);
+      let stylesJSON = await readStylesXMLAsync(stylesXMLPath);
+      let colorsXMLPath = await getProjectColorsXMLPathAsync(projectDirectory);
+      let colorsJSON = await readColorsXMLAsync(colorsXMLPath);
       expect(
         stylesJSON.resources.style
           .filter(e => e['$']['name'] === 'AppTheme')[0]
           .item.filter(item => item['$'].name === 'colorPrimaryDark')[0]['_']
+      ).toMatch('@color/colorPrimaryDark');
+      expect(
+        colorsJSON.resources.color.filter(e => e['$']['name'] === 'colorPrimaryDark')[0]['_']
       ).toMatch('#654321');
     });
 
