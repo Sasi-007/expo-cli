@@ -1,7 +1,8 @@
 import fs from 'fs-extra';
 import { dirname, resolve } from 'path';
 import { getRootViewBackgroundColor, setRootViewBackgroundColor } from '../RootViewBackgroundColor';
-import { readAndroidManifestAsync as readXMLFileAsync } from '../Manifest';
+import { readStylesXMLAsync } from '../Styles';
+import { getProjectColorsXMLPathAsync, readColorsXMLAsync } from '../Colors';
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleStylesXMLPath = resolve(fixturesPath, 'styles.xml');
 
@@ -41,11 +42,16 @@ describe('Root view background color', () => {
         await setRootViewBackgroundColor({ backgroundColor: '#654321' }, projectDirectory)
       ).toBe(true);
 
-      let stylesJSON = await readXMLFileAsync(stylesXMLPath);
+      let stylesJSON = await readStylesXMLAsync(stylesXMLPath);
+      let colorsXMLPath = await getProjectColorsXMLPathAsync(projectDirectory);
+      let colorsJSON = await readColorsXMLAsync(colorsXMLPath);
       expect(
         stylesJSON.resources.style
           .filter(e => e['$']['name'] === 'AppTheme')[0]
           .item.filter(item => item['$'].name === 'android:windowBackground')[0]['_']
+      ).toMatch('@color/activityBackground');
+      expect(
+        colorsJSON.resources.color.filter(e => e['$']['name'] === 'activityBackground')[0]['_']
       ).toMatch('#654321');
     });
   });

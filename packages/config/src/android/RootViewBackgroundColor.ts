@@ -1,11 +1,21 @@
 import { ExpoConfig } from '../Config.types';
-import { getProjectStylesXMLPathAsync, readStylesXMLAsync, writeStylesXMLAsync } from './Styles';
-import { getProjectColorsXMLPathAsync, readColorsXMLAsync, writeColorsXMLAsync } from './Colors';
+import {
+  XMLItem,
+  getProjectStylesXMLPathAsync,
+  readStylesXMLAsync,
+  setStylesItem,
+  writeStylesXMLAsync,
+} from './Styles';
+import {
+  getProjectColorsXMLPathAsync,
+  readColorsXMLAsync,
+  setColorItem,
+  writeColorsXMLAsync,
+} from './Colors';
 
-type StyleItem = {
-  _: string;
-  $: { name: string };
-};
+const ANDROID_WINDOW_BACKGROUND = 'android:windowBackground';
+const WINDOW_BACKGROUND_COLOR = 'activityBackground';
+
 export function getRootViewBackgroundColor(config: ExpoConfig) {
   if (config.android && config.android.backgroundColor) {
     return config.android.backgroundColor;
@@ -24,37 +34,28 @@ export async function setRootViewBackgroundColor(config: ExpoConfig, projectDire
   }
 
   const stylesPath = await getProjectStylesXMLPathAsync(projectDirectory);
-  if (!stylesPath) {
+  const colorsPath = await getProjectColorsXMLPathAsync(projectDirectory);
+  if (!colorsPath || !stylesPath) {
     return false;
   }
 
-  const windowBackgroundItem = [
-    {
-      _: hexString,
-      $: {
-        name: 'android:windowBackground',
-      },
-    },
-  ];
-
   let stylesJSON = await readStylesXMLAsync(stylesPath);
-  let appTheme = stylesJSON.resources.style.filter((e: any) => e['$']['name'] === 'AppTheme')[0];
-  if (appTheme.item) {
-    let existingWindowBackgroundItem = appTheme.item.filter(
-      (item: StyleItem) => item['$'].name === 'android:windowBackground'
-    )[0];
+  let colorsJSON = await readColorsXMLAsync(colorsPath);
 
-    // Don't want to 2 windowBackgrounds, so if one exists, we overwrite it
-    if (existingWindowBackgroundItem) {
-      existingWindowBackgroundItem['_'] = windowBackgroundItem[0]['_'];
-    } else {
-      appTheme.item = appTheme.item.concat(windowBackgroundItem);
-    }
-  } else {
-    appTheme.item = windowBackgroundItem;
-  }
+  let colorItemToAdd: XMLItem[] = [{ _: '', $: { name: '' } }];
+  let styleItemToAdd: XMLItem[] = [{ _: '', $: { name: '' } }];
+
+  colorItemToAdd[0]._ = hexString;
+  colorItemToAdd[0].$.name = WINDOW_BACKGROUND_COLOR;
+
+  styleItemToAdd[0]._ = `@color/${WINDOW_BACKGROUND_COLOR}`;
+  styleItemToAdd[0].$.name = ANDROID_WINDOW_BACKGROUND;
+
+  colorsJSON = setColorItem(colorItemToAdd, colorsJSON);
+  stylesJSON = setStylesItem(styleItemToAdd, stylesJSON);
 
   try {
+    await writeColorsXMLAsync(colorsPath, colorsJSON);
     await writeStylesXMLAsync(stylesPath, stylesJSON);
   } catch (e) {
     throw new Error(
