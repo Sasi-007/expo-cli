@@ -1,13 +1,5 @@
-import path from 'path';
-import fs from 'fs-extra';
-
 import { ExpoConfig } from '../Config.types';
-import {
-  readAndroidManifestAsync as readXMLFileAsync,
-  writeAndroidManifestAsync as writeXMLFileAsync,
-} from './Manifest';
-
-const STYLES_XML_PATH = 'app/src/main/res/values/styles.xml';
+import { getProjectStylesXMLPathAsync, readStylesXMLAsync, writeStylesXMLAsync } from './Styles';
 
 type StyleItem = {
   _: string;
@@ -44,7 +36,7 @@ export async function setRootViewBackgroundColor(config: ExpoConfig, projectDire
     },
   ];
 
-  let stylesJSON = await readXMLFileAsync(stylesPath);
+  let stylesJSON = await readStylesXMLAsync(stylesPath);
   let appTheme = stylesJSON.resources.style.filter((e: any) => e['$']['name'] === 'AppTheme')[0];
   if (appTheme.item) {
     let existingWindowBackgroundItem = appTheme.item.filter(
@@ -62,25 +54,11 @@ export async function setRootViewBackgroundColor(config: ExpoConfig, projectDire
   }
 
   try {
-    await writeXMLFileAsync(stylesPath, stylesJSON);
+    await writeStylesXMLAsync(stylesPath, stylesJSON);
   } catch (e) {
     throw new Error(
       `Error setting Android root view background color. Cannot write new AndroidManifest.xml to ${stylesPath}.`
     );
   }
   return true;
-}
-
-export async function getProjectStylesXMLPathAsync(projectDir: string): Promise<string | null> {
-  try {
-    const shellPath = path.join(projectDir, 'android');
-    if ((await fs.stat(shellPath)).isDirectory()) {
-      const stylesPath = path.join(shellPath, STYLES_XML_PATH);
-      if ((await fs.stat(stylesPath)).isFile()) {
-        return stylesPath;
-      }
-    }
-  } catch (error) {}
-
-  return null;
 }

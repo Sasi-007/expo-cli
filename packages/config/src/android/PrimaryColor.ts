@@ -1,9 +1,5 @@
-import { getProjectStylesXMLPathAsync } from './RootViewBackgroundColor';
 import { ExpoConfig } from '../Config.types';
-import {
-  readAndroidManifestAsync as readXMLFileAsync,
-  writeAndroidManifestAsync as writeXMLFileAsync,
-} from './Manifest';
+import { getProjectStylesXMLPathAsync, readStylesXMLAsync, writeStylesXMLAsync } from './Styles';
 
 const DEFAULT_PRIMARY_COLOR = '#023c69';
 type StyleItem = {
@@ -32,7 +28,7 @@ export async function setPrimaryColor(config: ExpoConfig, projectDirectory: stri
     },
   ];
 
-  let stylesJSON = await readXMLFileAsync(stylesPath);
+  let stylesJSON = await readStylesXMLAsync(stylesPath);
   let appTheme = stylesJSON.resources.style.filter((e: any) => e['$']['name'] === 'AppTheme')[0];
   if (appTheme.item) {
     let existingColorPrimaryItem = appTheme.item.filter(
@@ -50,7 +46,7 @@ export async function setPrimaryColor(config: ExpoConfig, projectDirectory: stri
   }
 
   try {
-    await writeXMLFileAsync(stylesPath, stylesJSON);
+    await writeStylesXMLAsync(stylesPath, stylesJSON);
   } catch (e) {
     throw new Error(
       `Error setting Android primary color. Cannot write new AndroidManifest.xml to ${stylesPath}.`

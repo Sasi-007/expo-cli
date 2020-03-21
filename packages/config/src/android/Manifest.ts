@@ -6,7 +6,7 @@ import path from 'path';
 
 const USES_PERMISSION = 'uses-permission';
 
-type Document = { [key: string]: any };
+export type Document = { [key: string]: any };
 
 export function removePermissions(doc: Document, permissionNames?: string[]) {
   const targetNames = permissionNames ? permissionNames.map(ensurePermissionNameFormat) : null;
