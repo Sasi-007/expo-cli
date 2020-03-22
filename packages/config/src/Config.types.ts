@@ -826,7 +826,7 @@ export type ExpoConfig = {
     /**
      * Determines whether to show or hide the bottom navigation bar. When set to `false`, both the navigation bar and the status bar are hidden by enabling full-screen mode, as recommended by the Android documentation.
      */
-    visible?: boolean;
+    visible?: 'leanback' | 'immersive' | 'sticky-immersive';
     /**
      * Configure the navigation bar icons to have a light or dark color. Supported on Android Oreo and newer.
      */
