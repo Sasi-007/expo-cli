@@ -28,7 +28,7 @@ describe('scheme', () => {
       await fs.remove(resolve(fixturesPath, 'tmp/'));
     });
 
-    it('adds orientation attribute if not present', async () => {
+    it('adds scheme to android manifest', async () => {
       expect(await setScheme({ scheme: 'myapp' }, projectDirectory)).toBe(true);
       let androidManifestJson = await readAndroidManifestAsync(appManifestPath);
       let intentFilters = androidManifestJson.manifest.application[0].activity.filter(

@@ -1,9 +1,15 @@
+import { dirname, resolve } from 'path';
+import fs from 'fs-extra';
 import {
   allPermissions,
   getAndroidPermissions,
   requiredPermissions,
   setAndroidPermissions,
 } from '../Permissions';
+import { readAndroidManifestAsync } from '../Manifest';
+
+const fixturesPath = resolve(__dirname, 'fixtures');
+const sampleManifestPath = resolve(fixturesPath, 'react-native-AndroidManifest.xml');
 
 // TODO: use fixtures for manifest/mainactivity instead of inline strings
 
@@ -51,15 +57,45 @@ describe('Android permissions', () => {
     ).toMatchObject(['CAMERA', 'RECORD_AUDIO']);
   });
 
-  it('does not add permission if its already present', () => {
-    expect(
-      setAndroidPermissions({ android: { permissions: ['VIBRATE'] } }, EXAMPLE_ANDROID_MANIFEST)
-    ).toMatch(EXAMPLE_ANDROID_MANIFEST);
-  });
+  describe('adds permissions in AndroidManifest.xml if given', () => {
+    const projectDirectory = resolve(fixturesPath, 'tmp/');
+    const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
 
-  it('does add permission if not already present', () => {
-    expect(
-      setAndroidPermissions({ android: { permissions: ['READ_SMS'] } }, EXAMPLE_ANDROID_MANIFEST)
-    ).toMatch(`<uses-permission android:name="android.permission.READ_SMS"/>`);
+    beforeAll(async () => {
+      await fs.ensureDir(dirname(appManifestPath));
+      await fs.copyFile(sampleManifestPath, appManifestPath);
+    });
+
+    afterAll(async () => {
+      await fs.remove(resolve(fixturesPath, 'tmp/'));
+    });
+
+    it('adds permissions if not present, does not duplicate permissions', async () => {
+      let givenPermissions = [
+        'android.permission.READ_CONTACTS',
+        'com.android.launcher.permission.INSTALL_SHORTCUT',
+        'com.android.launcher.permission.INSTALL_SHORTCUT',
+      ];
+      expect(
+        await setAndroidPermissions(
+          { android: { permissions: givenPermissions } },
+          projectDirectory
+        )
+      ).toBe(true);
+
+      let manifestPermissionsJSON = (await readAndroidManifestAsync(appManifestPath)).manifest[
+        'uses-permission'
+      ];
+      let manifestPermissions = manifestPermissionsJSON.map(e => e['$']['android:name']);
+
+      expect(
+        manifestPermissions.every(permission =>
+          givenPermissions.concat(requiredPermissions).includes(permission)
+        )
+      ).toBe(true);
+      expect(
+        manifestPermissions.filter(e => e === 'com.android.launcher.permission.INSTALL_SHORTCUT')
+      ).toHaveLength(1);
+    });
   });
 });

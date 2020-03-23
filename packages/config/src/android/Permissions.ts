@@ -1,6 +1,12 @@
 import { ExpoConfig } from '../Config.types';
+import {
+  getProjectAndroidManifestPathAsync,
+  readAndroidManifestAsync,
+  writeAndroidManifestAsync,
+} from './Manifest';
 
-const END_OPTIONAL_PERMISSIONS = '<!-- END OPTIONAL PERMISSIONS -->';
+type XMLPermission = { $: { 'android:name': string } };
+
 export const requiredPermissions = [
   'android.permission.INTERNET',
   'android.permission.ACCESS_NETWORK_STATE',
@@ -52,7 +58,12 @@ export function getAndroidPermissions(config: ExpoConfig): string[] {
   return config.android?.permissions ?? [];
 }
 
-export function setAndroidPermissions(config: ExpoConfig, AndroidManifest: string) {
+export async function setAndroidPermissions(config: ExpoConfig, projectDirectory: string) {
+  const manifestPath = await getProjectAndroidManifestPathAsync(projectDirectory);
+  if (!manifestPath) {
+    return false;
+  }
+
   const permissions = getAndroidPermissions(config);
   let permissionsToAdd = [];
   if (permissions === null) {
@@ -64,24 +75,40 @@ export function setAndroidPermissions(config: ExpoConfig, AndroidManifest: strin
     permissionsToAdd = [...providedPermissions, ...requiredPermissions];
   }
 
+  let androidManifestJson = await readAndroidManifestAsync(manifestPath);
+  let manifestPermissions: XMLPermission[] = [];
+  if (!androidManifestJson.manifest.hasOwnProperty('uses-permission')) {
+    androidManifestJson.manifest['uses-permission'] = [];
+  }
+  manifestPermissions = androidManifestJson.manifest['uses-permission'];
+
   permissionsToAdd.forEach(permission => {
-    if (!isPermissionAlreadyRequested(permission, AndroidManifest)) {
-      AndroidManifest = addPermissionToManifest(permission, AndroidManifest);
+    if (!isPermissionAlreadyRequested(permission, manifestPermissions)) {
+      addPermissionToManifest(permission, manifestPermissions);
     }
   });
 
-  return AndroidManifest;
+  try {
+    await writeAndroidManifestAsync(manifestPath, androidManifestJson);
+  } catch (e) {
+    throw new Error(
+      `Error setting Android permissions. Cannot write new AndroidManifest.xml to ${manifestPath}.`
+    );
+  }
+  return true;
 }
 
-export function isPermissionAlreadyRequested(permission: string, AndroidManifest: string): boolean {
-  let pattern = new RegExp(permission);
-  return pattern.test(AndroidManifest);
+export function isPermissionAlreadyRequested(
+  permission: string,
+  manifestPermissions: XMLPermission[]
+): boolean {
+  const hasPermission = manifestPermissions.filter(
+    (e: any) => e['$']['android:name'] === permission
+  );
+  return hasPermission.length > 0;
 }
 
-export function addPermissionToManifest(permission: string, AndroidManifest: string): string {
-  const replacementString = `
-    <uses-permission android:name="${permission}"/>
-    ${END_OPTIONAL_PERMISSIONS}
-    `;
-  return AndroidManifest.replace(END_OPTIONAL_PERMISSIONS, replacementString);
+export function addPermissionToManifest(permission: string, manifestPermissions: XMLPermission[]) {
+  manifestPermissions.push({ $: { 'android:name': permission } });
+  return manifestPermissions;
 }
