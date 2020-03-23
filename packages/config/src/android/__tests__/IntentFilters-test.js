@@ -16,7 +16,7 @@ describe('Android intent filters', () => {
   });
 
   afterAll(async () => {
-    await fs.remove(resolve(fixturesPath, 'android/'));
+    await fs.remove(resolve(fixturesPath, 'tmp/'));
   });
 
   it(`returns empty array if no intent filters are provided`, () => {
