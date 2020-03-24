@@ -8,13 +8,13 @@ const sampleManifestPath = resolve(fixturesPath, 'react-native-AndroidManifest.x
 
 describe('Android permissions', () => {
   it(`returns null if no android google maps api key is provided`, () => {
-    expect(getGoogleMapsApiKey({})).toBe(null);
+    expect(getGoogleMapsApiKey({ android: { config: { googleMaps: {} } } })).toBe(null);
   });
 
   it(`returns apikey if android google maps api key is provided`, () => {
-    expect(getGoogleMapsApiKey({ android: { config: { googleMaps: 'MY-API-KEY' } } })).toBe(
-      'MY-API-KEY'
-    );
+    expect(
+      getGoogleMapsApiKey({ android: { config: { googleMaps: { apiKey: 'MY-API-KEY' } } } })
+    ).toBe('MY-API-KEY');
   });
 
   describe('sets google maps key in AndroidManifest.xml if given', () => {
@@ -33,7 +33,7 @@ describe('Android permissions', () => {
     it('add google maps key', async () => {
       expect(
         await setGoogleMapsApiKey(
-          { android: { config: { googleMaps: 'MY-API-KEY' } } },
+          { android: { config: { googleMaps: { apiKey: 'MY-API-KEY' } } } },
           projectDirectory
         )
       ).toBe(true);

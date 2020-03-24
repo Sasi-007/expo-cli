@@ -6,7 +6,7 @@ import {
 } from './Manifest';
 
 export function getGoogleMapsApiKey(config: ExpoConfig) {
-  return config.android?.config?.googleMaps ?? null;
+  return config.android?.config?.googleMaps?.apiKey ?? null;
 }
 
 export async function setGoogleMapsApiKey(config: ExpoConfig, projectDirectory: string) {
