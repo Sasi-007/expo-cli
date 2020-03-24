@@ -198,6 +198,15 @@ export type AndroidPlatformConfig = {
      */
     googleMobileAdsAppId?: string;
     /**
+     *  A boolean indicating whether to initialize Google App Measurement and begin sending
+     *  user-level event data to Google immediately when the app starts. The default in Expo
+     *  (Client and in standalone apps) is `false`.
+     *
+     *  Sets the opposite of the given value to the following tag in AndroidManifest.xml:
+     *  https://developers.google.com/admob/android/eu-consent#delay_app_measurement_optional
+     */
+    googleMobileAdsAutoInit: boolean;
+    /**
      * [Google Sign-In Android SDK](https://developers.google.com/identity/sign-in/android/start-integrating) keys for your standalone app.
      */
     googleSignIn?: {
