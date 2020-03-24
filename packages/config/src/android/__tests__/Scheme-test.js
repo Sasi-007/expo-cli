@@ -1,28 +1,10 @@
+import { dirname, resolve } from 'path';
+import fs from 'fs-extra';
 import { getScheme, setScheme } from '../Scheme';
+import { readAndroidManifestAsync } from '../Manifest';
 
-// TODO: use fixtures for manifest/build.gradle instead of inline strings
-
-const EXAMPLE_ANDROID_MANIFEST = `
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.helloworld">
-    <application
-    android:name=".MainApplication"
-    android:theme="@style/AppTheme">
-    
-    <activity android:name=".MainActivity">
-      <intent-filter android:label="Shooter">
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <!-- Accepts URIs that begin with "link://exampleurl” -->
-        <data android:scheme="link"
-              android:host="exampleurl" />
-      </intent-filter>
-    </activity>
-    <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
-  </application>
-</manifest>
-`;
+const fixturesPath = resolve(__dirname, 'fixtures');
+const sampleManifestPath = resolve(fixturesPath, 'react-native-AndroidManifest.xml');
 
 describe('scheme', () => {
   it(`returns null if no scheme is provided`, () => {
@@ -33,9 +15,32 @@ describe('scheme', () => {
     expect(getScheme({ scheme: 'myapp' })).toBe('myapp');
   });
 
-  it(`sets the android:scheme in AndroidManifest.xml if scheme is given`, () => {
-    expect(setScheme({ scheme: 'myapp' }, EXAMPLE_ANDROID_MANIFEST)).toMatch(
-      `android:scheme="myapp"`
-    );
+  describe('sets the android:scheme in AndroidManifest.xml if scheme is given', () => {
+    const projectDirectory = resolve(fixturesPath, 'tmp/');
+    const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
+
+    beforeAll(async () => {
+      await fs.ensureDir(dirname(appManifestPath));
+      await fs.copyFile(sampleManifestPath, appManifestPath);
+    });
+
+    afterAll(async () => {
+      await fs.remove(resolve(fixturesPath, 'tmp/'));
+    });
+
+    it('adds orientation attribute if not present', async () => {
+      expect(await setScheme({ scheme: 'myapp' }, projectDirectory)).toBe(true);
+      let androidManifestJson = await readAndroidManifestAsync(appManifestPath);
+      let intentFilters = androidManifestJson.manifest.application[0].activity.filter(
+        e => e['$']['android:name'] === '.MainActivity'
+      )[0]['intent-filter'];
+      let schemeIntent = intentFilters.filter(e => {
+        if (e.hasOwnProperty('data')) {
+          return e['data'][0]['$']['android:scheme'] === 'myapp';
+        }
+        return false;
+      });
+      expect(schemeIntent).toHaveLength(1);
+    });
   });
 });
