@@ -1,23 +1,23 @@
 import { dirname, resolve } from 'path';
 import fs from 'fs-extra';
-import { getGoogleMapsApiKey, setGoogleMapsApiKey } from '../GoogleMapsApiKey';
+import { getBranchApiKey, setBranchApiKey } from '../Branch';
 import { readAndroidManifestAsync } from '../Manifest';
 
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleManifestPath = resolve(fixturesPath, 'react-native-AndroidManifest.xml');
 
-describe('Android google maps api key', () => {
-  it(`returns null if no android google maps api key is provided`, () => {
-    expect(getGoogleMapsApiKey({ android: { config: { googleMaps: {} } } })).toBe(null);
+describe('Android branch test', () => {
+  it(`returns null if no android branch api key is provided`, () => {
+    expect(getBranchApiKey({ android: { config: {} } })).toBe(null);
   });
 
-  it(`returns apikey if android google maps api key is provided`, () => {
-    expect(
-      getGoogleMapsApiKey({ android: { config: { googleMaps: { apiKey: 'MY-API-KEY' } } } })
-    ).toBe('MY-API-KEY');
+  it(`returns apikey if android branch api key is provided`, () => {
+    expect(getBranchApiKey({ android: { config: { branch: { apiKey: 'MY-API-KEY' } } } })).toBe(
+      'MY-API-KEY'
+    );
   });
 
-  describe('sets google maps key in AndroidManifest.xml if given', () => {
+  describe('sets branch api key in AndroidManifest.xml if given', () => {
     const projectDirectory = resolve(fixturesPath, 'tmp/');
     const appManifestPath = resolve(fixturesPath, 'tmp/android/app/src/main/AndroidManifest.xml');
 
@@ -30,10 +30,10 @@ describe('Android google maps api key', () => {
       await fs.remove(resolve(fixturesPath, 'tmp/'));
     });
 
-    it('add google maps key', async () => {
+    it('add branch api key', async () => {
       expect(
-        await setGoogleMapsApiKey(
-          { android: { config: { googleMaps: { apiKey: 'MY-API-KEY' } } } },
+        await setBranchApiKey(
+          { android: { config: { branch: { apiKey: 'MY-API-KEY' } } } },
           projectDirectory
         )
       ).toBe(true);
@@ -44,16 +44,10 @@ describe('Android google maps api key', () => {
       )[0];
 
       let apiKeyItem = mainApplication['meta-data'].filter(
-        e => e['$']['android:name'] === 'com.google.android.geo.API_KEY'
+        e => e['$']['android:name'] === 'io.branch.sdk.BranchKey'
       );
       expect(apiKeyItem).toHaveLength(1);
       expect(apiKeyItem[0]['$']['android:value']).toMatch('MY-API-KEY');
-
-      let usesLibraryItem = mainApplication['uses-library'].filter(
-        e => e['$']['android:name'] === 'org.apache.http.legacy'
-      );
-      expect(usesLibraryItem).toHaveLength(1);
-      expect(usesLibraryItem[0]['$']['android:required']).toMatch('false');
     });
   });
 });
